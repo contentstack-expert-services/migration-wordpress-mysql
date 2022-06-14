@@ -1,0 +1,10 @@
+{
+  "wordpress": {
+    "promptHostName": "Enter Hostname",
+    "promptUserName": "Enter Username",
+    "promptPassword": "Enter Password",
+    "promptPortNo": "Enter Port No.",
+    "promptDataBase": "Enter Database Name",
+    "promptMySqlDescription": "For WordPress export using MySql Connection, You must have Workbench, phpMyAdmin, or MySql install in your System!"
+  }
+}
