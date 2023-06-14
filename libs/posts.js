@@ -31,12 +31,15 @@ var postConfig = config.modules.posts,
   ),
   assetfolderpath = path.resolve(config.data, config.modules.asset.dirName),
   masterFolderPath = path.resolve(config.data, "master", config.entryfolder),
-  postsCountQuery =
-    "SELECT count(p.ID) as postcount FROM <<tableprefix>>posts p WHERE p.post_type='post' AND p.post_status='publish'",
+  
+  // postsCountQuery =
+  //   "SELECT count(p.ID) as postcount FROM <<tableprefix>>posts p WHERE p.post_type='post' AND p.post_status='publish'",
+    postsCountQuery =
+      "SELECT COUNT(p.ID) AS postcount FROM <<tableprefix>>posts p WHERE p.post_type NOT IN ('page', 'wp_global_styles', 'wp_block') AND p.post_status IN ('publish', 'inherit')"
   postsQuery =
-    "SELECT p.ID,p.post_author,u.user_login,p.post_title,p.post_name,p.guid,p.post_content,p.post_excerpt,p.post_date,p.post_date_gmt, (SELECT group_concat(<<tableprefix>>terms.slug) FROM <<tableprefix>>terms INNER JOIN <<tableprefix>>term_taxonomy on <<tableprefix>>terms.term_id = <<tableprefix>>term_taxonomy.term_id INNER JOIN <<tableprefix>>term_relationships wpr on wpr.term_taxonomy_id = <<tableprefix>>term_taxonomy.term_taxonomy_id WHERE taxonomy= 'category' and p.ID = wpr.object_id)AS post_category,p.post_author,u.user_login FROM <<tableprefix>>posts p LEFT JOIN <<tableprefix>>users u ON u.ID = p.post_author WHERE p.post_type='post' AND p.post_status='publish' GROUP BY p.ID ORDER BY p.post_date asc",
+    "SELECT p.ID,p.post_author,u.user_login,p.post_title,p.post_name,p.guid,p.post_content,p.post_excerpt,p.post_date,p.post_date_gmt, (SELECT group_concat(<<tableprefix>>terms.slug) FROM <<tableprefix>>terms INNER JOIN <<tableprefix>>term_taxonomy on <<tableprefix>>terms.term_id = <<tableprefix>>term_taxonomy.term_id INNER JOIN <<tableprefix>>term_relationships wpr on wpr.term_taxonomy_id = <<tableprefix>>term_taxonomy.term_taxonomy_id WHERE taxonomy= 'category' and p.ID = wpr.object_id)AS post_category,p.post_author,u.user_login FROM <<tableprefix>>posts p LEFT JOIN <<tableprefix>>users u ON u.ID = p.post_author  WHERE p.post_type NOT IN ('page', 'wp_global_styles', 'wp_block') AND p.post_status IN ('publish', 'inherit') GROUP BY p.ID ORDER BY p.post_date asc",
   postsByIDQuery =
-    "SELECT p.ID,p.post_author,u.user_login,p.post_title,p.post_name,p.guid,p.post_content,p.post_excerpt,p.post_date,p.post_date_gmt, (SELECT group_concat(<<tableprefix>>terms.slug) FROM <<tableprefix>>terms INNER JOIN <<tableprefix>>term_taxonomy on <<tableprefix>>terms.term_id = <<tableprefix>>term_taxonomy.term_id INNER JOIN <<tableprefix>>term_relationships wpr on wpr.term_taxonomy_id = <<tableprefix>>term_taxonomy.term_taxonomy_id WHERE taxonomy= 'category' and p.ID = wpr.object_id)AS post_category,p.post_author,u.user_login FROM <<tableprefix>>posts p LEFT JOIN <<tableprefix>>users u ON u.ID = p.post_author WHERE p.post_type='post' AND p.post_status='publish' AND p.ID IN <<postids>> GROUP BY p.ID ORDER BY p.post_date asc",
+    "SELECT p.ID,p.post_author,u.user_login,p.post_title,p.post_name,p.guid,p.post_content,p.post_excerpt,p.post_date,p.post_date_gmt, (SELECT group_concat(<<tableprefix>>terms.slug) FROM <<tableprefix>>terms INNER JOIN <<tableprefix>>term_taxonomy on <<tableprefix>>terms.term_id = <<tableprefix>>term_taxonomy.term_id INNER JOIN <<tableprefix>>term_relationships wpr on wpr.term_taxonomy_id = <<tableprefix>>term_taxonomy.term_taxonomy_id WHERE taxonomy= 'category' and p.ID = wpr.object_id)AS post_category,p.post_author,u.user_login FROM <<tableprefix>>posts p LEFT JOIN <<tableprefix>>users u ON u.ID = p.post_author  WHERE p.post_type NOT IN ('page', 'wp_global_styles', 'wp_block') AND p.post_status IN ('publish', 'inherit') AND p.ID IN <<postids>> GROUP BY p.ID ORDER BY p.post_date asc",
   permalink_structureQuery =
     "SELECT option_value FROM <<tableprefix>>options WHERE option_name='permalink_structure'",
   siteURLQuery =
@@ -98,7 +101,7 @@ ExtractPosts.prototype = {
     var lastslash = false;
     if (permalink_structure == "") {
       //This code for handle guid and  blog host from it
-      var base = siteurl.split("/");
+      var base = siteurl?.split("/");
       var len = base.length;
       var blogname;
       if (base[len - 1] == "") {
@@ -106,14 +109,13 @@ ExtractPosts.prototype = {
       } else {
         blogname = base[len - 1];
       }
-      console.log(blogname);
       var url = guid;
       var index = url.indexOf(blogname);
-      url = url.split(blogname);
+      url = url?.split(blogname);
       url = url[1];
       return url;
     } else {
-      permalink_structure = permalink_structure.split("/");
+      permalink_structure = permalink_structure?.split("/");
       if (permalink_structure[0] == "") permalink_structure.splice(0, 1);
 
       var len = permalink_structure.length;
@@ -167,18 +169,19 @@ ExtractPosts.prototype = {
   },
   savePosts: function (postsDetails) {
     var self = this;
+    // console.log(postsDetails, 'postsDetails')
     return when.promise(function (resolve, reject) {
       self.customBar.start(postsDetails.length, 0, {
         title: "Migrating Posts      ",
       });
       var authorId = helper.readFile(
-        path.join(process.cwd(), "csMigrationData/entries/authors/en-us.json")
+        path.join(process.cwd(), "csMigrationData","entries","authors","en-us.json")
       );
 
       var categoryId = helper.readFile(
         path.join(
           process.cwd(),
-          "csMigrationData/entries/categories/en-us.json"
+          "csMigrationData","entries","categories","en-us.json"
         )
       );
 
@@ -188,28 +191,28 @@ ExtractPosts.prototype = {
       var postmaster = helper.readFile(
         path.join(masterFolderPath, postConfig.masterfile)
       );
-      let image = [];
-      var featuredImage = helper.readFile(
-        path.join(assetfolderpath, config.modules.asset.featuredfileName)
-      );
+      // let image = [];
+      // var featuredImage = helper.readFile(
+      //   path.join(assetfolderpath, config.modules.asset.featuredfileName)
+      // );
       var assetsId = helper.readFile(
         path.join(assetfolderpath, config.modules.asset.fileName)
       );
-      const iterator = Object.values(featuredImage).values();
-      for (const value of iterator) {
-        Object.values(assetsId).forEach((key) => {
-          if (key.uid === value) {
-            image.push([assetsId[value]]); // to push the key which we got from match
-          }
-        });
-      }
+      // const iterator = Object.values(featuredImage).values();
+      // for (const value of iterator) {
+      //   Object.values(assetsId).forEach((key) => {
+      //     if (key.uid === `assets_${value}`) {
+      //       image.push(assetsId[`assets_${value}`]); // to push the key which we got from match
+      //     }
+      //   });
+      // }
       postsDetails.map(function (data, index) {
         var postAuthor = [],
           postcategories = [];
         // to match id with Author
         // console.log(data["user_login"].split(","));
 
-        const authIterator = data["user_login"].split(",");
+        const authIterator = data["user_login"]?.split(",");
         for (const value of authIterator) {
           Object.values(authorId).forEach((key) => {
             if (value === key.title) {
@@ -222,7 +225,7 @@ ExtractPosts.prototype = {
         }
 
         // to match id with categories
-        const catIterator = Object.values(data["post_category"].split(","));
+        const catIterator = data["post_category"] !== null ?  Object.values(data["post_category"]?.split(",")) : '';
         for (const value of catIterator) {
           Object.values(categoryId).forEach((key) => {
             if (value === key.nicename) {
@@ -243,8 +246,6 @@ ExtractPosts.prototype = {
         );
         let htmlDoc = dom.window.document.querySelector("body");
         const jsonValue = htmlToJson(htmlDoc);
-
-        // console.log(data["post_category"].split(","));
         var guid = "/" + data["guid"].replace(/^(?:\/\/|[^\/]+)*\//, "");
         postdata[`posts_${data["ID"]}`] = {
           title: data["post_title"],
@@ -258,12 +259,13 @@ ExtractPosts.prototype = {
             .replace(/<!--.*?-->/g, "")
             .replace(/&lt;!--?\s+\/?wp:.*?--&gt;/g, ""),
         };
-        if (featuredImage) {
-          postdata[data["ID"]]["featured_image"] = image[data["ID"]];
-        } else {
-          postdata[data["ID"]]["featured_image"] = "";
-        }
-        postmaster["en-us"][data["ID"]] = "";
+        // if (featuredImage) {
+        //   console.log(data, 'data')
+        //   postdata[data["ID"]]["featured_image"] = image[data["ID"]];
+        // } else {
+        //   postdata[data["ID"]]["featured_image"] = "";
+        // }
+        postmaster["en-us"][data[`posts_${data["ID"]}`]] = "";
         self.customBar.increment();
       });
       helper.writeFile(
@@ -280,8 +282,10 @@ ExtractPosts.prototype = {
   },
   getPosts: function (skip) {
     var self = this;
+    // console.log(skip, 'self')
     return when.promise(function (resolve, reject) {
       var query;
+      // console.log(postsQuery)
       if (postids.length == 0) query = postsQuery;
       //Query for all posts
       else {
@@ -290,13 +294,15 @@ ExtractPosts.prototype = {
       }
       query = query.replace(/<<tableprefix>>/g, config["table_prefix"]);
       query = query + " limit " + skip + ", " + limit;
+      // console.log(query, 'query')
       self.connection.query(query, function (error, rows, fields) {
+        // console.log(rows)
         if (!error) {
           if (rows.length > 0) {
             self.savePosts(rows);
             resolve();
           } else {
-            errorLogger("no posts found");
+            // errorLogger("no posts found");
             resolve();
           }
         } else {
@@ -308,6 +314,7 @@ ExtractPosts.prototype = {
   },
   getAllPosts: function (postCount) {
     var self = this;
+    // console.log(postCount, 'postCount')
     return when.promise(function (resolve, reject) {
       var _getPosts = [];
       for (var i = 0, total = postCount; i < total; i += limit) {
@@ -319,6 +326,7 @@ ExtractPosts.prototype = {
           })(i)
         );
       }
+      // console.log(_getPosts, '_getPosts')
       var guardTask = guard.bind(null, guard.n(1));
       _getPosts = _getPosts.map(guardTask);
       var taskResults = parallel(_getPosts);
@@ -372,7 +380,7 @@ ExtractPosts.prototype = {
         });
       } else {
         if (fs.existsSync(filePath)) {
-          postids = fs.readFileSync(filePath, "utf-8").split(",");
+          postids = fs.readFileSync(filePath, "utf-8")?.split(",");
         }
         if (postids.length > 0) {
           self

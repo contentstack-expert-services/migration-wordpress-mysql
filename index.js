@@ -8,6 +8,7 @@ var path = require("path"),
 
 _ = require("lodash");
 const Messages = require("./utils/message");
+const { log } = require("console");
 const messages = new Messages("wordpress").msgs;
 
 config = require("./config");
@@ -36,7 +37,8 @@ const migration = () => {
   });
   connection.connect((err) => {
     if (err) {
-      console.log(chalk.red("Cannot connected to database please try again!"));
+      console.log(err)
+      console.log(chalk.red("Cannot connect to database please try again!"));
       MySqlMigration();
     } else {
       console.log(chalk.green("Connected to database"));
@@ -140,20 +142,20 @@ const MySqlMigration = async () => {
     },
   ];
 
-  inquirer.prompt(question).then(async (answer) => {
+  // inquirer.prompt(question).then(async (answer) => {
     try {
       // configuring the details to config file
-      global.config.mysql.host = `${answer.csHostName}`;
-      global.config.mysql.user = `${answer.csUserName}`;
-      global.config.mysql.password = `${answer.csPassword}`;
-      global.config.mysql.port = `${answer.csPort}`;
-      global.config.mysql.database = `${answer.csDataBase}`;
+      // global.config.mysql.host = `${answer.csHostName}`;
+      // global.config.mysql.user = `${answer.csUserName}`;
+      // global.config.mysql.password = `${answer.csPassword}`;
+      // global.config.mysql.port = `${answer.csPort}`;
+      // global.config.mysql.database = `${answer.csDataBase}`;
 
       migration();
     } catch (error) {
       console.log(chalk.red(error.message));
     }
-  });
+  // });
 };
 
 module.exports = MySqlMigration();
