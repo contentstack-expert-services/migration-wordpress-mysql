@@ -37,9 +37,9 @@ var postConfig = config.modules.posts,
     postsCountQuery =
       "SELECT COUNT(p.ID) AS postcount FROM <<tableprefix>>posts p WHERE p.post_type NOT IN ('page', 'wp_global_styles', 'wp_block') AND p.post_status IN ('publish', 'inherit')"
   postsQuery =
-    "SELECT p.ID,p.post_author,u.user_login,p.post_title,p.post_name,p.guid,p.post_content,p.post_excerpt,p.post_date,p.post_date_gmt, (SELECT group_concat(<<tableprefix>>terms.slug) FROM <<tableprefix>>terms INNER JOIN <<tableprefix>>term_taxonomy on <<tableprefix>>terms.term_id = <<tableprefix>>term_taxonomy.term_id INNER JOIN <<tableprefix>>term_relationships wpr on wpr.term_taxonomy_id = <<tableprefix>>term_taxonomy.term_taxonomy_id WHERE taxonomy= 'category' and p.ID = wpr.object_id)AS post_category,p.post_author,u.user_login FROM <<tableprefix>>posts p LEFT JOIN <<tableprefix>>users u ON u.ID = p.post_author  WHERE p.post_type NOT IN ('page', 'wp_global_styles', 'wp_block') AND p.post_status IN ('publish', 'inherit') GROUP BY p.ID ORDER BY p.post_date asc",
+    "SELECT p.ID,p.post_author,u.user_login,p.post_title,p.post_name,p.guid,p.post_content,p.post_excerpt,p.post_date,p.post_date_gmt, (SELECT group_concat(<<tableprefix>>terms.slug) FROM <<tableprefix>>terms INNER JOIN <<tableprefix>>term_taxonomy on <<tableprefix>>terms.term_id = <<tableprefix>>term_taxonomy.term_id INNER JOIN <<tableprefix>>term_relationships wpr on wpr.term_taxonomy_id = <<tableprefix>>term_taxonomy.term_taxonomy_id WHERE taxonomy= 'category' and p.ID = wpr.object_id)AS post_category,p.post_author,u.user_login FROM <<tableprefix>>posts p LEFT JOIN <<tableprefix>>users u ON u.ID = p.post_author  WHERE p.post_type NOT IN ('page', 'wp_global_styles', 'wp_block') AND p.post_status IN ('publish', 'inherit') GROUP BY p.ID ORDER BY p.post_date desc",
   postsByIDQuery =
-    "SELECT p.ID,p.post_author,u.user_login,p.post_title,p.post_name,p.guid,p.post_content,p.post_excerpt,p.post_date,p.post_date_gmt, (SELECT group_concat(<<tableprefix>>terms.slug) FROM <<tableprefix>>terms INNER JOIN <<tableprefix>>term_taxonomy on <<tableprefix>>terms.term_id = <<tableprefix>>term_taxonomy.term_id INNER JOIN <<tableprefix>>term_relationships wpr on wpr.term_taxonomy_id = <<tableprefix>>term_taxonomy.term_taxonomy_id WHERE taxonomy= 'category' and p.ID = wpr.object_id)AS post_category,p.post_author,u.user_login FROM <<tableprefix>>posts p LEFT JOIN <<tableprefix>>users u ON u.ID = p.post_author  WHERE p.post_type NOT IN ('page', 'wp_global_styles', 'wp_block') AND p.post_status IN ('publish', 'inherit') AND p.ID IN <<postids>> GROUP BY p.ID ORDER BY p.post_date asc",
+    "SELECT p.ID,p.post_author,u.user_login,p.post_title,p.post_name,p.guid,p.post_content,p.post_excerpt,p.post_date,p.post_date_gmt, (SELECT group_concat(<<tableprefix>>terms.slug) FROM <<tableprefix>>terms INNER JOIN <<tableprefix>>term_taxonomy on <<tableprefix>>terms.term_id = <<tableprefix>>term_taxonomy.term_id INNER JOIN <<tableprefix>>term_relationships wpr on wpr.term_taxonomy_id = <<tableprefix>>term_taxonomy.term_taxonomy_id WHERE taxonomy= 'category' and p.ID = wpr.object_id)AS post_category,p.post_author,u.user_login FROM <<tableprefix>>posts p LEFT JOIN <<tableprefix>>users u ON u.ID = p.post_author  WHERE p.post_type NOT IN ('page', 'wp_global_styles', 'wp_block') AND p.post_status IN ('publish', 'inherit') AND p.ID IN <<postids>> GROUP BY p.ID ORDER BY p.post_date desc",
   permalink_structureQuery =
     "SELECT option_value FROM <<tableprefix>>options WHERE option_name='permalink_structure'",
   siteURLQuery =
@@ -169,7 +169,6 @@ ExtractPosts.prototype = {
   },
   savePosts: function (postsDetails) {
     var self = this;
-    // console.log(postsDetails, 'postsDetails')
     return when.promise(function (resolve, reject) {
       self.customBar.start(postsDetails.length, 0, {
         title: "Migrating Posts      ",
@@ -210,9 +209,8 @@ ExtractPosts.prototype = {
         var postAuthor = [],
           postcategories = [];
         // to match id with Author
-        // console.log(data["user_login"].split(","));
 
-        const authIterator = data["user_login"]?.split(",");
+        const authIterator = data["user_login"] ? data["user_login"]?.split(",") : '';
         for (const value of authIterator) {
           Object.values(authorId).forEach((key) => {
             if (value === key.title) {
@@ -260,7 +258,6 @@ ExtractPosts.prototype = {
             .replace(/&lt;!--?\s+\/?wp:.*?--&gt;/g, ""),
         };
         // if (featuredImage) {
-        //   console.log(data, 'data')
         //   postdata[data["ID"]]["featured_image"] = image[data["ID"]];
         // } else {
         //   postdata[data["ID"]]["featured_image"] = "";
@@ -282,10 +279,8 @@ ExtractPosts.prototype = {
   },
   getPosts: function (skip) {
     var self = this;
-    // console.log(skip, 'self')
     return when.promise(function (resolve, reject) {
       var query;
-      // console.log(postsQuery)
       if (postids.length == 0) query = postsQuery;
       //Query for all posts
       else {
@@ -294,9 +289,7 @@ ExtractPosts.prototype = {
       }
       query = query.replace(/<<tableprefix>>/g, config["table_prefix"]);
       query = query + " limit " + skip + ", " + limit;
-      // console.log(query, 'query')
       self.connection.query(query, function (error, rows, fields) {
-        // console.log(rows)
         if (!error) {
           if (rows.length > 0) {
             self.savePosts(rows);
@@ -314,7 +307,6 @@ ExtractPosts.prototype = {
   },
   getAllPosts: function (postCount) {
     var self = this;
-    // console.log(postCount, 'postCount')
     return when.promise(function (resolve, reject) {
       var _getPosts = [];
       for (var i = 0, total = postCount; i < total; i += limit) {
@@ -326,7 +318,6 @@ ExtractPosts.prototype = {
           })(i)
         );
       }
-      // console.log(_getPosts, '_getPosts')
       var guardTask = guard.bind(null, guard.n(1));
       _getPosts = _getPosts.map(guardTask);
       var taskResults = parallel(_getPosts);
