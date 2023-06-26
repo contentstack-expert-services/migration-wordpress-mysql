@@ -34,6 +34,8 @@ var assetConfig = config.modules.asset,
   (featuredImageQuery =
     "SELECT <<tableprefix>>posts.ID,<<tableprefix>>postmeta.meta_value FROM <<tableprefix>>posts,<<tableprefix>>postmeta WHERE <<tableprefix>>posts.ID=<<tableprefix>>postmeta.post_id AND <<tableprefix>>postmeta.meta_key='_thumbnail_id' AND <<tableprefix>>posts.post_type='post' AND <<tableprefix>>posts.post_status='publish'");
 
+    
+
 if (!fs.existsSync(assetFolderPath)) {
   mkdirp.sync(assetFolderPath);
   helper.writeFile(path.join(assetFolderPath, assetConfig.fileName));
@@ -195,22 +197,6 @@ ExtractAssets.prototype = {
                         tag: [],
                         filename: name,
                         url: url,
-                        ACL: {
-                          roles: [],
-                          others: {
-                            read: false,
-                            create: false,
-                            update: false,
-                            delete: false,
-                            sub_acl: {
-                              read: false,
-                              create: false,
-                              update: false,
-                              delete: false,
-                              publish: false,
-                            },
-                          },
-                        },
                         is_dir: false,
                         parent_uid: null,
                         _version: 1,
@@ -225,7 +211,7 @@ ExtractAssets.prototype = {
                       );
                       helper.writeFile(
                         assetVersionInfoFile,
-                        JSON.stringify(assetData[assets["title"]])
+                        JSON.stringify(assetData[`assets_${assets["ID"]}`])
                       );
                       assetMapping[assets["ID"]] = "";
                       assetURLMapping[url] = "";
@@ -308,7 +294,7 @@ ExtractAssets.prototype = {
   getAllAssets: function (assetcount) {
     var self = this;
     return when.promise(function (resolve, reject) {
-      self.customBar.start(assetcount.length, 0, {
+      self.customBar.start(assetcount, 0, {
         title: "Migrating Assets     ",
       });
       var _getAssets = [];

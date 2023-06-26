@@ -24,7 +24,7 @@ It will ask you prompt like this and you have to add your hostname, username, pa
     "host":"<<mysql host>>",
     "user":"<<mysql username>>",
     "password":"<<mysql password>>",
-    "database":"<<mysql database of drupal>>",
+    "database":"<<mysql database of wordpress>>",
 ```
 
 For example:
