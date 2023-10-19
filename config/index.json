@@ -83,12 +83,15 @@
       "fileName": "schema.json"
     }
   },
-  "base_locale": { "name": "English US", "code": "en-us" },
+  "base_locale": {
+    "name": "English US",
+    "code": "en-us"
+  },
   "mysql": {
     "host": "localhost",
     "user": "root",
-    "password": "Viranch@10",
-    "database": "carsdotcom",
+    "password": "",
+    "database": "",
     "port": "3307"
   },
   "fileName": "en-us.json"

@@ -143,18 +143,18 @@ const MySqlMigration = async () => {
   ];
 
   // inquirer.prompt(question).then(async (answer) => {
-    try {
-      // configuring the details to config file
-      // global.config.mysql.host = `${answer.csHostName}`;
-      // global.config.mysql.user = `${answer.csUserName}`;
-      // global.config.mysql.password = `${answer.csPassword}`;
-      // global.config.mysql.port = `${answer.csPort}`;
-      // global.config.mysql.database = `${answer.csDataBase}`;
+  try {
+    // configuring the details to config file
+    // global.config.mysql.host = `${answer.csHostName}`;
+    // global.config.mysql.user = `${answer.csUserName}`;
+    // global.config.mysql.password = `${answer.csPassword}`;
+    // global.config.mysql.port = `${answer.csPort}`;
+    // global.config.mysql.database = `${answer.csDataBase}`;
 
-      migration();
-    } catch (error) {
-      console.log(chalk.red(error.message));
-    }
+    migration();
+  } catch (error) {
+    console.log(chalk.red(error.message));
+  }
   // });
 };
 
